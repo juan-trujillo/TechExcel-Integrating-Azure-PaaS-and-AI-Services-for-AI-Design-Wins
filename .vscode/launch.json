@@ -11,24 +11,29 @@
       "name": "Launch ContosoSuitesWebAPI",
       "type": "coreclr",
       "request": "launch",
-      "preLaunchTask": "build WebAPI", 
+      "preLaunchTask": "build WebAPI",
       "program": "${workspaceFolder}/src/ContosoSuitesWebAPI/bin/Debug/net8.0/ContosoSuitesWebAPI.exe",
       "args": [],
-      "cwd": "${workspaceFolder}/src/ContosoSuitesWebAPI",       
+      "cwd": "${workspaceFolder}/src/ContosoSuitesWebAPI",
       "console": "internalConsole",
-      "stopAtEntry": false     
-  },
-  {
+      "stopAtEntry": false
+    },
+    {
       "name": "Launch streamlit",
       "type": "debugpy",
       "request": "launch",
-      //"program": "streamlit",
       "module": "streamlit",
       "cwd": "${workspaceFolder}/src/ContosoSuitesDashboard",
-      "args" : [
-          "run",
-          "Index.py"
+      "args": [
+        "run",
+        "Index.py"
       ]
-  }
+    },
+    {
+      "name": "Python Debugger: Python File",
+      "type": "debugpy",
+      "request": "launch",
+      "program": "${file}"
+    }
   ]
 }

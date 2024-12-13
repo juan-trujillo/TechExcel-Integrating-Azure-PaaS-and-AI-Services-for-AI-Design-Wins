@@ -6,19 +6,26 @@ st.set_page_config(layout="wide")
 
 def create_chat_completion(messages):
     """Create and return a new chat completion request. Key assumptions:
-    - The Azure OpenAI endpoint, key, and deployment name are stored in Streamlit secrets."""
+    - The Azure OpenAI endpoint, key, and deployment name are stored in Streamlit secrets.
+    - The search endpoint, key, and index name are stored in Streamlit secrets."""
 
     # Retrieve secrets from the Streamlit secret store.
     # This is a secure way to store sensitive information that you don't want to expose in your code.
     # Learn more about Streamlit secrets here: https://docs.streamlit.io/develop/concepts/connections/secrets-management
     # The secrets themselves are stored in the .streamlit/secrets.toml file.
 
+    tenant_id = st.secrets["azure"]["tenant_id"]
     token_provider = get_bearer_token_provider(
-        DefaultAzureCredential(), "https://cognitiveservices.azure.com/.default"
+        DefaultAzureCredential(visual_studio_code_tenant_id=tenant_id), 
+        "https://cognitiveservices.azure.com/.default"
     )
     
     aoai_endpoint = st.secrets["aoai"]["endpoint"]
     aoai_deployment_name = st.secrets["aoai"]["deployment_name"]
+
+    search_endpoint = st.secrets["search"]["endpoint"]
+    search_key = st.secrets["search"]["key"]
+    search_index_name = st.secrets["search"]["index_name"]
 
     client = openai.AzureOpenAI(
         azure_ad_token_provider=token_provider,
@@ -26,14 +33,38 @@ def create_chat_completion(messages):
         azure_endpoint = aoai_endpoint
     )
     # Create and return a new chat completion request
+    # return client.chat.completions.create(
+    #     model=aoai_deployment_name,
+    #     messages=[
+    #         {"role": m["role"], "content": m["content"]}
+    #         for m in messages
+    #     ],
+    #     stream=True
+    # )
     return client.chat.completions.create(
-        model=aoai_deployment_name,
-        messages=[
-            {"role": m["role"], "content": m["content"]}
-            for m in messages
-        ],
-        stream=True
-    )
+          model=aoai_deployment_name,
+          messages=[
+              {"role": m["role"], "content": m["content"]}
+              for m in messages
+          ],
+          stream=True,
+          extra_body={
+              "data_sources": [
+                  {
+                      "type": "azure_search",
+                      "parameters": {
+                          "endpoint": search_endpoint,
+                          "index_name": search_index_name,
+                          "authentication": {
+                              "type": "api_key",
+                              "key": search_key
+                          }
+                      }
+                  }
+              ]
+          }
+      )
+
 
 def handle_chat_prompt(prompt):
     """Echo the user's prompt to the chat window.
