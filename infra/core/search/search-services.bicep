@@ -2,6 +2,7 @@ metadata description = 'Creates an Azure AI Search instance.'
 param name string
 param location string = resourceGroup().location
 param tags object = {}
+param managedIdentityName string
 
 param sku object = {
   name: 'standard'
@@ -37,7 +38,10 @@ param replicaCount int = 1
 param semanticSearch string = 'disabled'
 
 var searchIdentityProvider = (sku.name == 'free') ? null : {
-  type: 'SystemAssigned'
+  type: 'UserAssigned'
+  userAssignedIdentities: {
+    '${resourceGroup().id}/providers/Microsoft.ManagedIdentity/userAssignedIdentities/${managedIdentityName}': {}
+  }
 }
 
 resource search 'Microsoft.Search/searchServices@2021-04-01-preview' = {
@@ -64,5 +68,3 @@ resource search 'Microsoft.Search/searchServices@2021-04-01-preview' = {
 output id string = search.id
 output endpoint string = 'https://${name}.search.windows.net/'
 output name string = search.name
-output principalId string = !empty(searchIdentityProvider) ? search.identity.principalId : ''
-
